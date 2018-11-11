@@ -11,8 +11,6 @@ application=$0
 command=$1
 args=$2
 
-properties_file=containter/docker.properties
-
 ###
 # Pull the images with the define version in docker.properties files
 #
@@ -22,7 +20,6 @@ function pull() {
         docker pull $i;
     done
 }
-
 
 function loadResources() {
 	echo -e "\n\t\t $0 load resources...";

@@ -16,7 +16,7 @@ On Ubuntu machine the update for docker-compose lead you to /usr/local/bin/docke
 1. Docker version 18.06.1-ce
 2. docker-compose version 1.23.1
 
-Use the script to pull images need for the project:
+Use the script to pull images needed for the project:
 1. In a terminal move under cloud-services
 2. Make sure that docker.sh is executable: chmod 750 docker.sh | chmod +x docker.sh
 3. Execute: ./docker.sh pull
