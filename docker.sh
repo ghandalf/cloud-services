@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ###
-## Use to stars current docker containers
+## Use to stars current docker configs
 ##
 ##
 ## Author: Ghandalf
@@ -23,8 +23,8 @@ function pull() {
 
 function loadResources() {
 	echo -e "\n\t\t $0 load resources...";
-	if [ -f ./container/docker.properties ]; then
-		source ./container/docker.properties;
+	if [ -f ./config/docker.properties ]; then
+		source ./config/docker.properties;
 	else
 		echo -e "\n\t\tYou need to provide the file docker.properties under container directory...";
 		echo -e "\n";
@@ -155,13 +155,29 @@ function clean() {
 }
 
 function info() {
-	docker images;
-	docker ps;
-	docker network ls;
-	docker service ls;
 	docker-compose -f $compose_file config;
-	docker-compose -f container/docker-compose.prod.yml config;
+	# docker-compose -f $compose_prod_file config;
+	docker images;
 	echo -e "\n";
+	docker ps;
+	echo -e "\n";
+	docker network ls;
+	#docker service ls;
+	echo -e "\n";
+}
+
+function validate() {
+	case $1 in
+		local)
+			docker-compose -f $compose_file config;
+			;;
+		prod)
+			docker-compose -f $compose_prod_file config;
+			;;
+		*)
+			echo -e "\n\t\tPlease you need to provide argument <local|prod>";
+		;;
+	esac
 }
 
 function usage() {
@@ -196,6 +212,9 @@ case ${command} in
 		;;
 	info)
 		info;
+		;;
+	validate)
+		validate $args;
 		;;
     *) 
 		usage;

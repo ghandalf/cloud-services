@@ -72,8 +72,8 @@ function insertData() {
 
 function loadResources() {
 	echo -e "\n\t\t $0 load resources...";
-	if [ -f ./container/db.properties ]; then
-		source ./container/db.properties;
+	if [ -f ./config/db.properties ]; then
+		source ./config/db.properties;
 	else
 		echo -e "\n\t\tYou need to provide the file db.properties under container directory...";
 		echo -e "\n";

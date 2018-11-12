@@ -1,0 +1,47 @@
+version: '3.7'
+# https://www.elastic.co/blog/a-full-stack-in-one-command
+services:
+   
+   elasticsearch:
+      container_name: elasticsearch
+      hostname: elasticsearch
+      image: docker.elastic.co/elasticsearch/elasticsearch:6.4.3
+      environment:
+        - http.host=0.0.0.0
+        - transport.host=127.0.0.1
+        - bootstrap.memory_lock=true
+        - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m"
+      #mem_limit: 2g
+      ulimits:
+       memlock:
+          soft: -1
+          hard: -1    
+      volumes: 
+        - ./config/elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/elasticsearch.yml
+        - elastic-data:/data/server/analytic/elasticsearch
+      ports: ['9200:9200']
+      healthcheck:
+        test: ["CMD", "curl","-s" ,"-f", "-u", "elastic:changeme", "http://localhost:9200/_cat/health"]
+      networks: ['analytic_net']
+
+   kibana:
+      container_name: kibana
+      hostname: kibana
+      image: docker.elastic.co/kibana/kibana:6.4.3
+      volumes:
+        - ./config/kibana/kibana.yml:/usr/share/kibana/kibana.yml
+      ports: ['5601:5601']
+      networks: ['analytic_net']
+      depends_on: ['elasticsearch']
+      environment:
+        - "ELASTICSEARCH_PASSWORD=changeme"
+        - "ELASTICSEARCH_URL=http://elasticsearch:9200"
+      healthcheck:
+        test: ["CMD", "curl", "-s", "-f", "http://localhost:5601/login"]
+        retries: 6      
+
+networks: {analytic_net: {}}
+
+volumes:
+  elastic-data:
+    driver: local
