@@ -1,8 +1,11 @@
 version: '3.7'
+
 # https://www.elastic.co/blog/a-full-stack-in-one-command
 services:
-   
+
    elasticsearch:
+    # TODO: For production environment those have to be configure:
+    # https://www.elastic.co/guide/en/elasticsearch/reference/current/important-settings.html
       container_name: elasticsearch
       hostname: elasticsearch
       image: docker.elastic.co/elasticsearch/elasticsearch:6.4.3
@@ -16,32 +19,116 @@ services:
        memlock:
           soft: -1
           hard: -1    
-      volumes: 
-        - ./config/elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/elasticsearch.yml
+      volumes:
+      # docker-compose adds config directory in background for the key [-key:value] 
+      # Elasticsearch loads its configuration from files under /usr/share/elasticsearch/config/
+        - ./elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/elasticsearch.yml
         - elastic-data:/data/server/analytic/elasticsearch
       ports: ['9200:9200']
       healthcheck:
         test: ["CMD", "curl","-s" ,"-f", "-u", "elastic:changeme", "http://localhost:9200/_cat/health"]
       networks: ['analytic_net']
-
+ 
    kibana:
+   # TODO: Review those configuration before going in prod
+   # https://www.elastic.co/guide/en/kibana/6.4/settings.html
       container_name: kibana
       hostname: kibana
       image: docker.elastic.co/kibana/kibana:6.4.3
       volumes:
-        - ./config/kibana/kibana.yml:/usr/share/kibana/kibana.yml
+      # docker-compose adds config directory in background for the key [- key:value]
+        - ./kibana/kibana.yml:/usr/share/kibana/kibana.yml
       ports: ['5601:5601']
       networks: ['analytic_net']
       depends_on: ['elasticsearch']
       environment:
         - "ELASTICSEARCH_PASSWORD=changeme"
         - "ELASTICSEARCH_URL=http://elasticsearch:9200"
+        # - xpack.monitoring.collection.enabled: 'true'
       healthcheck:
         test: ["CMD", "curl", "-s", "-f", "http://localhost:5601/login"]
         retries: 6      
+   
+   heartbeat:
+    # TODO: I would like to check the availibility in the script need to find out how
+    container_name: hearbeat
+    hostname: hearbeat
+    image: docker.elastic.co/beats/heartbeat:6.4.3
+    volumes:
+      - ./beats/heartbeat/heartbeat.yml:/usr/share/heartbeat/heartbeat.yml
+    depends_on: ['elasticsearch']
+    environment: 
+      - "ES_PASSWORD=changeme" 
+      # Is it the one since 3.7.1 or the other one above
+      - "ELASTICSEARCH_PASSWORD=changeme"
+    command: heartbeat -e -E output.elasticsearch.username=elastic -E output.elasticsearch.password=changeme -strict.perms=false
+    restart: on-failure
+    networks: ['analytic_net']
+   
+#   filebeat:
+#    container_name: filebeat
+#    hostname: filebeat
+#    user: root
+#    image: docker.elastic.co/beats/filebeat:6.4.3
+#    volumes:
+#      - ./beats/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml
+#      - ./beats/filebeat/prospectors.d/:/usr/share/filebeat/prospectors.d/
+#      - /var/lib/docker/containers:/hostfs/var/lib/docker/containers
+#      - filebeat-data:/usr/share/filebeat/data/
+#    networks: ['analytic_net']
+#    command: filebeat -e -E output.elasticsearch.username=elastic -E output.elasticsearch.password=changeme -strict.perms=false
+#    depends_on: ['elasticsearch']
+#    restart: on-failure
+   
+   metricbeat:
+    container_name: metricbeat
+    hostname: metricbeat
+    user: root
+    image: docker.elastic.co/beats/metricbeat:6.4.3
+    volumes:
+      - ./beats/metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml
+      - ./beats/metricbeat/metricbeat.d/:/usr/share/metricbeat/modules.d/
+      - /proc:/hostfs/proc:ro
+      - /sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /:/hostfs:ro
+    command: metricbeat -e -system.hostfs=/hostfs -E output.elasticsearch.username=elastic -E output.elasticsearch.password=changeme -strict.perms=false
+    networks: ['analytic_net']
+    restart: on-failure
+    environment: {} # We may need to get database metric.
+    depends_on: ['elasticsearch']
+   
+   packetbeat:
+    container_name: packetbeat
+    hostname: packetbeat
+    user: root
+    image: docker.elastic.co/beats/packetbeat:6.4.3
+    volumes:
+      - ./beats/packetbeat/packetbeat.yml:/usr/share/packetbeat/packetbeat.yml
+    # Posix uses to grant privilege
+    cap_add: ['NET_RAW', 'NET_ADMIN']
+    network_mode: host
+    command: packetbeat -e -E output.elasticsearch.hosts=["localhost:9200"] -E output.elasticsearch.username=elastic -E output.elasticsearch.password=changeme -strict.perms=false
+    depends_on: ['elasticsearch']
+
+  #https://github.com/elastic/examples/blob/master/Miscellaneous/docker/full_stack_example/init/configure-stack.sh
+   #Configure Stack container. This short lived container configures the stack once Kibana and Elasticsearch are available. 
+   # More specifically, using a script it sets passwords, import dashboards, sets a default index pattern, loads templates and pipelines
+#   configure_stack:
+#    container_name: configure_stack
+#    image: docker.elastic.co/beats/metricbeat:6.4.3
+#    volumes: ['./init/configure-stack.sh:/usr/local/bin/configure-stack.sh:ro','./init/pipelines/:/usr/local/bin/pipelines/','./init/templates/:/usr/local/bin/templates/']
+#    Put the script in memory
+#    command: ['/bin/bash', '-c', 'cat /usr/local/bin/configure-stack.sh | tr -d "\r" | bash']
+#    networks: ['analytic_net']
+#    environment: ['ELASTIC_VERSION=6.4.3','ES_PASSWORD=changeme','DEFAULT_INDEX_PATTERN=metricbeat-*']
+#    depends_on: ['elasticsearch','kibana']
+
 
 networks: {analytic_net: {}}
 
 volumes:
   elastic-data:
+    driver: local
+  filebeat-data:
     driver: local

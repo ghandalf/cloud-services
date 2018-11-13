@@ -26,8 +26,12 @@ function loadResources() {
 	if [ -f ./config/docker.properties ]; then
 		source ./config/docker.properties;
 	else
-		echo -e "\n\t\tYou need to provide the file docker.properties under container directory...";
-		echo -e "\n";
+		echo -e "\n\t\t${BRed}You need to provide the file docker.properties under config directory...${Color_Off}\n";
+	fi
+	if [ -f ./env/colors.properties ]; then
+		source ./env/colors.properties;
+	else
+		echo -e "\n\t\t${BRed}You need to provide colors.properties file under env directory...${Color_Off}\n";
 	fi
 }
 
@@ -56,7 +60,7 @@ function network() {
 			fi
 			;;
 		*)
-			echo -e "\n\t\tPlease you need to provide a sub command <create|remove>";
+			echo -e "\n\t\t${BRed}Please you need to provide a sub command <create|remove>.${Color_Off}";
 			;;
 	esac
 	docker network ls;
@@ -106,6 +110,11 @@ function stopAnalytic() {
 	docker ps -a;
 }
 
+###
+# This function will start the container by using command line for analytic, and 
+# docker-compose.yml file for the swarm.
+# Best practice is to use the swarm configuration.
+##
 function start() {
 	case $1 in
 		analytic)
@@ -113,13 +122,19 @@ function start() {
 			startAnalytic;	
 			;;
 		swarm)
+			# compose needs to shutdown all background processing before starting them.
 			docker-compose -f $compose_file down;
 			docker-compose -f $compose_file up;
 			;;
 		*)
-			echo -e "\n\t\tPlease you need to provide a sub command <analytic|swarm>";
+			echo -e "\n\t\t${BRed}Please you need to provide a sub command <analytic|swarm>.${Color_Off}";
 			;;
 	esac
+}
+
+function stopSwarm() {
+	docker-compose -f $compose_file down;
+	docker swarm leave --force;
 }
 
 function stop() {
@@ -128,8 +143,7 @@ function stop() {
 			stopAnalytic;
 			;;
 		swarm)
-			docker-compose -f $compose_file down;
-			docker swarm leave --force;
+			stopSwarm;
 			;;
 		*)
 			echo -e "\n\t\tPlease you need to provide a sub command <analytic|swarm>";
@@ -137,6 +151,10 @@ function stop() {
 	esac
 }
 
+###
+# Remove all containers, networks and force leaving the swarm due to manager container.
+#
+##
 function clean() {
     echo -e "\n\t\tRemove background running containers\n";
 	for i in "${images[@]}"; do
@@ -166,6 +184,23 @@ function info() {
 	echo -e "\n";
 }
 
+function status() {
+	echo -e "\n\t\tKibana status...";
+	curl -s localhost:5601/api/status;
+
+	echo -e "\n\n\t\tElastich search status...";
+	curl -s -f -u elastic:changeme http://localhost:9200/_cat/health;
+	echo -e "\n\n\t\tElastich search info...";
+	curl -s localhost:9200/;
+}
+
+###
+# Contain configuration needed for ElasticSearch and Kibana
+##
+function configuration() {
+	echo -e "\n\t\t${BRed}Not emplemented yet...${Color_Off}";
+}
+
 function validate() {
 	case $1 in
 		local)
@@ -175,20 +210,19 @@ function validate() {
 			docker-compose -f $compose_prod_file config;
 			;;
 		*)
-			echo -e "\n\t\tPlease you need to provide argument <local|prod>";
+			echo -e "\n\t\t${BRed}Please you need to provide argument <local|prod>.${Color_Off}";
 		;;
 	esac
 }
 
 function usage() {
     echo -e "\n\tUsage:";
-    echo -e "\t\t$0 <pull|clean|db|start|startAnalytic|show|stop>";
-	echo -e "\t\t\tstartAnalytic: will start the containers wihtout docker.compose.yml"
-    echo -e "\n";
+    echo -e "\t\t$0 <pull|clean|start|stop|clean|info|status|validate>";
+	echo -e "\n";
 }
 
 function finish() {
-	echo -e "\n\t\tUse to clean resources before we live\n";
+	echo -e "\n\t\t${Cyan}Not implemented yet. Will be a graceful shutdown process...${Color_Off}\n";
 }
 trap finish EXIT;
 
@@ -212,6 +246,9 @@ case ${command} in
 		;;
 	info)
 		info;
+		;;
+	status)
+		status;
 		;;
 	validate)
 		validate $args;

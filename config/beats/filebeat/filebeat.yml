@@ -1,0 +1,13 @@
+filebeat.registry_file: /usr/share/filebeat/data/registry
+filebeat.config.prospectors:
+  path: ${path.config}/prospectors.d/*.yml
+  reload.enabled: false
+filebeat.modules:
+#Filebeat system module consumes logs from host OS through a mounted volume
+- module: system
+  syslog:
+    var.paths: ["/var/log/host/system.log*"]
+
+# Indexing data to ElasticSearch
+output.elasticsearch:
+  hosts: ["elasticsearch:9200"]

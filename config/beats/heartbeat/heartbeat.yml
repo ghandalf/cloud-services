@@ -1,0 +1,44 @@
+heartbeat.monitors:
+- type: icmp
+  schedule: '*/5 * * * * * *'
+  hosts: ["elasticsearch","kibana"]
+  ipv4: true
+  ipv6: true
+  mode: any
+  timeout: 16s
+  wait: 1s
+
+# ElasticSearch
+- type: http
+  enabled: true
+  schedule: '@every 5s'
+  urls: ["http://elasticsearch:9200"]
+  ipv4: true
+  ipv6: true
+  mode: any
+  timeout: 5s
+  username: '${ES_USERNAME:elastic}'
+  password: '${ES_PASSWORD:changeme}'
+  check.request:
+    method: "GET"
+  check.response:
+    status: 200
+
+# Kibana
+- type: http
+  enabled: true
+  schedule: '@every 5s'
+  urls: ["http://kibana:5601"]
+  ipv4: true
+  ipv6: true
+  mode: any
+  timeout: 5s
+  check.request:
+    method: "GET"
+  check.response:
+    status: 200
+
+#Index any heartbeat data to our ES instance
+output.elasticsearch:
+  hosts: ["elasticsearch:9200"]
+logging.to_files: false
