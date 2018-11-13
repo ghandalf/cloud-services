@@ -215,10 +215,10 @@ function configuration() {
 function validate() {
 	case $1 in
 		local)
-			docker-compose -f $compose_file config;
+			docker-compose -f ${compose_file} config;
 			;;
 		prod)
-			docker-compose -f $compose_prod_file config;
+			docker-compose -f ${compose_prod_file} config;
 			;;
 		*)
 			echo -e "\n${double_tab}${BRed}Please you need to provide argument <local|prod>.${Color_Off}";
@@ -232,7 +232,6 @@ function validate() {
 # FIXME: activate this function when all containers are ready for deployment.
 ##
 function update() {
-	
 	case $args in
 		docker)
 			echo -e "\n${double_tab}${Green}docker version [${Red}`docker --version`${Green}] \n" \
@@ -277,6 +276,10 @@ function update() {
 	esac
 }
 
+function diagnose() {
+	${docker_diagnose} gather
+}
+
 function usage() {
     echo -e "\n\tUsage:";
     echo -e "${double_tab}$0 <pull|clean|start|stop|clean|info|status|validate|security>";
@@ -291,11 +294,23 @@ trap finish EXIT;
 loadResources;
 
 case ${command} in
-	pull)
-		pull;
+	clean)
+		clean;
+		;;
+	diagnose)
+		diagnose;
+		;;
+	info)
+		info;
 		;;
 	network)
 		network $args;
+		;;
+	pull)
+		pull;
+		;;
+	security)
+		setUpSecurity;
 		;;
 	start)
 		start $args;
@@ -303,23 +318,14 @@ case ${command} in
 	stop)
 		stop $args;
 		;;
-	clean)
-		clean;
-		;;
-	info)
-		info;
-		;;
 	status)
 		status;
-		;;
-	validate)
-		validate $args;
 		;;
 	update)
 		update $args;
 		;;
-	security)
-		setUpSecurity;
+	validate)
+		validate $args;
 		;;
     *) 
 		usage;

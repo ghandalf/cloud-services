@@ -111,11 +111,11 @@ services:
     command: packetbeat -e -E output.elasticsearch.hosts=["localhost:9200"] -E output.elasticsearch.username=elastic -E output.elasticsearch.password=changeme -strict.perms=false
     depends_on: ['elasticsearch']
    
-#   logstach:
-#    container_name: logstach
-#    image: docker.elastic.co/logstash/logstash:6.4.3
-#    networks: ['analytic_net']
-#    depends_on: ['elasticsearch']
+   logstach:
+    container_name: logstach
+    image: docker.elastic.co/logstash/logstash:6.4.3
+    networks: ['analytic_net']
+    depends_on: ['elasticsearch']
 #    healthcheck:
 #      test: bin/logstash -t
 #      interval: 60s
