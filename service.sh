@@ -192,6 +192,14 @@ function status() {
 ###
 # Create keystore and certificate
 # We will need to use the customer certificate.
+# At the end of this fucntion
+# Edit the Hosts File
+# 	Now you have a certificate that's valid for dev.dminc.com, so you'll need to use it in developement mode.
+#   Open your hosts file (/private/etc/hosts on mac, /etc/hosts on linux) and add a new line like:
+#	127.0.0.1       dev.dminc.com
+#	Save the file. 
+#	Now, while developing, have your dev server use the generated certificate files 
+#	and develop against https://dev.dminc.com using whatever port numbers the server uses.
 ##
 function setUpSecurity() {
 	local ELASTIC_PASSWORD="changeme";
@@ -203,10 +211,20 @@ function setUpSecurity() {
 	openssl genrsa -des3 -out config/ssl/ca/dmiCA.key 4096
 	# Generate root certificate for 5 years
 	openssl req -x509 -new -nodes -key config/ssl/ca/dmiCA.key -sha256 -days 1825 -out config/ssl/ca/dmiCA.pem
+
+	# Generate a rsa file
+	openssl genrsa -out config/ssl/ca/dev.dminc.com.key 4096
+	# Generate the csr file
+	openssl req -new -key config/ssl/ca/dev.dminc.com.key -out config/ssl/ca/dev.dminc.com.csr
+	# Use the definition file: config/ssl/ca/dev.dminc.com.ext
+	openssl x509 -req -in config/ssl/ca/dev.dminc.com.csr -CA config/ssl/ca/dmiCA.pem \
+	-CAkey config/ssl/ca/dmiCA.key -CAcreateserial -out config/ssl/ca/dev.dminc.com.crt \
+	-days 1825 -sha256 -extfile config/ssl/ca/dev.dminc.com.ext
 }
 
 ###
 # Contain configuration needed for ElasticSearch and Kibana
+# In docker preferences, you need to add /data as File Sharing
 ##
 function configuration() {
 	echo -e "\n${double_tab}${BRed}Not emplemented yet...${Color_Off}";
