@@ -84,7 +84,7 @@ function startAnalytic() {
         fi
         case $containerName in
             elasticsearch)
-                # see: httpans://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html
+                # see: https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html
                 docker run --name $containerName -p 9200:9200 -p 9300:9300 -d --network ${analytic_network} $i
                 ;;
             kibana)
@@ -121,7 +121,9 @@ function start() {
 			;;
 		swarm)
 			# compose needs to shutdown all background processing before starting them.
-			docker-compose -f $compose_file down && docker-compose -f $compose_file up;
+			stopSwarm;
+			clean;
+			docker-compose -f $compose_file up;
 			;;
 		*)
 			echo -e "\n${double_tab}${BRed}Please you need to provide a sub command <analytic|swarm>.${Color_Off}";
@@ -162,7 +164,7 @@ function clean() {
 
 	#local result=`docker network ls --filter 'name=$analytic_network' | grep $analytic_network | awk {'printf $2'}`;
 	for network in "${networks[@]}"; do
-		echo -e "\t\t${Red} Removing network: ${network}";
+		echo -e "\t\t${Red} Removing network: ${network} ${Color_Off}";
 		docker network rm ${network};
 	done
 
