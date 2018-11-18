@@ -1,0 +1,9 @@
+.history
+
+docker.toberemoved
+
+test/
+
+config/TMP.yml
+config/docker-compose.OLD
+
