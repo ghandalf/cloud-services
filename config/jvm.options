@@ -1,0 +1,4 @@
+# see: https://www.elastic.co/guide/en/elasticsearch/reference/current/jvm-options.html
+# The next two lines are comment out
+# -Xms1024m
+# -Xmx1024m
