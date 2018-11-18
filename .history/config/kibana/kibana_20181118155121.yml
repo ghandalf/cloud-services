@@ -1,0 +1,11 @@
+
+# Using docker compose, if you want docker to validate your docker-compose.yml
+# Those environment variables must be under environment in docker-compose.yml file.
+#server.port: 5601
+server.host: localhost
+server.name: "kibana"
+elasticsearch.url: "http://elasticsearch:9200"
+elasticsearch.username: elastic
+elasticsearch.password: changeme
+#xpack.monitoring.ui.container.elasticsearch.enabled: true
+#xpack.monitoring.enabled: true

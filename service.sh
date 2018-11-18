@@ -22,7 +22,7 @@ function pull() {
 }
 
 function loadResources() {
-	echo -e "\n${double_tab}$0 load resources...";
+	# echo -e "\n${double_tab}$0 load resources...";
 	if [ -f ./config/docker.properties ]; then
 		source ./config/docker.properties;
 	else
@@ -160,10 +160,11 @@ function clean() {
     	docker rm $containerName;
 	done
 
-	local result=`docker network ls --filter 'name=$analytic_network' | grep $analytic_network | awk {'printf $2'}`;
-	if [ $result ]; then
-		docker network rm ${analytic_network};
-	fi
+	#local result=`docker network ls --filter 'name=$analytic_network' | grep $analytic_network | awk {'printf $2'}`;
+	for network in "${networks[@]}"; do
+		echo -e "\t\t${Red} Removing network: ${network}";
+		docker network rm ${network};
+	done
 
 	docker swarm leave --force;
     echo -e "\n";
@@ -183,10 +184,10 @@ function info() {
 
 function status() {
 	echo -e "\n${double_tab}${Yellow}Kibana${Color_Off} status: \n${Green}`curl -s -f localhost:5601/api/status`${Color_Off}";
-
-	echo -e "\n\n${double_tab}${Yellow}ElasticSearch${Color_Off} status: ${Green}`curl -s -f -u elastic:changeme http://localhost:9200/_cat/health`${Color_Off}";
-	
-	echo -e "\n\n${double_tab}${Yellow}ElasticSearch${Color_Off} info: \n${Green}`curl -s localhost:9200/`${Color_Off}";
+	#echo -e "\n${double_tab}${Yellow}ElasticSearch${Color_Off} status: ${Green}`curl -s -f -u elastic:changeme http://localhost:9200/_cat/health`${Color_Off}";
+	echo -e "\n${double_tab}${Yellow}ElasticSearch${Color_Off} status: \n${Green}`curl -s localhost:9200/`${Color_Off}";
+	echo -e "${Green}`curl -s localhost:9200/_xpack/license`${Color_Off}";
+	echo -e "\n${double_tab}${Yellow}Logstach${Color_Off} status: \n${Green}`curl -XGET "localhost:9600/?pretty"`${Color_Off}";
 }
 
 ###
@@ -228,6 +229,26 @@ function setUpSecurity() {
 ##
 function configuration() {
 	echo -e "\n${double_tab}${BRed}Not emplemented yet...${Color_Off}";
+}
+
+function bash() {
+	local container="";
+	local failure="false";
+	case $1 in
+		elasticsearch) container=elasticsearch;;
+		kibana) container=kibana;;
+		heartbeat) container=heartbeat;;
+		metricbeat) container=metricbeat;;
+		packetbeat) container=packetbeat;;
+		logstach) container=logstach;;
+		*)
+			echo -e "\n${double_tab}${Red}Please you need to provide a sub command <elasticsearch|kibana|heartbeat|metricbeat|packetbeat|logstach>${Color_Off}";
+			failure="true";
+			;;
+	esac
+	if [ ${failure} == "false" ]; then
+		docker-compose -f ${compose_file} exec $container bash;
+	fi
 }
 
 function validate() {
@@ -312,40 +333,30 @@ trap finish EXIT;
 loadResources;
 
 case ${command} in
+	bash)
+		bash $args;;
 	clean)
-		clean;
-		;;
+		clean;;
 	diagnose)
-		diagnose;
-		;;
+		diagnose;;
 	info)
-		info;
-		;;
+		info;;
 	network)
-		network $args;
-		;;
+		network $args;;
 	pull)
-		pull;
-		;;
+		pull;;
 	security)
-		setUpSecurity;
-		;;
+		setUpSecurity;;
 	start)
-		start $args;
-		;;
+		start $args;;
 	stop)
-		stop $args;
-		;;
+		stop $args;;
 	status)
-		status;
-		;;
+		status;;
 	update)
-		update $args;
-		;;
+		update $args;;
 	validate)
-		validate $args;
-		;;
+		validate $args;;
     *) 
-		usage;
-		;;
+		usage;;
 esac

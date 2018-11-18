@@ -39,6 +39,8 @@ heartbeat.monitors:
     status: 200
 
 #Index any heartbeat data to our ES instance
-output.elasticsearch:
-  hosts: ["elasticsearch:9200"]
+#output.elasticsearch:
+#  hosts: ["elasticsearch:9200"]
+output.logstash:
+  hosts: ["127.0.0.1:5044"]
 logging.to_files: false

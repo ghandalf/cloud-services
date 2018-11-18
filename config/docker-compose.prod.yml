@@ -1,5 +1,8 @@
 version: '3.7'
 
+# FIXME Review the config for prod
+# see: https://www.elastic.co/guide/en/elasticsearch/reference/current/important-settings.html
+# see: https://www.elastic.co/blog/a-full-stack-in-one-command
 services:
    
    elasticsearch:

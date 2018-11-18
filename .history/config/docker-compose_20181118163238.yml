@@ -4,10 +4,13 @@ services:
 
    elasticsearch:
       container_name: elasticsearch
+      #hostname: elasticsearch
       image: docker.elastic.co/elasticsearch/elasticsearch:6.4.3
-      #environment:
-      #  - bootstrap.memory_lock=true
-      #  - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m"
+      environment:
+        - http.host=0.0.0.0
+        #- transport.host=127.0.0.1
+        - bootstrap.memory_lock=true
+        - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m"
       ulimits:
        memlock:
           soft: -1
@@ -25,6 +28,7 @@ services:
 
    kibana:
       container_name: kibana
+      hostname: kibana
       image: docker.elastic.co/kibana/kibana:6.4.3
       environment:
       #  ELASTICSEARCH_USERNAME: elastic 

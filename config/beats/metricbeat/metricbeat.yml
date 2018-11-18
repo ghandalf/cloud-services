@@ -4,6 +4,8 @@ metricbeat.config.modules:
   reload.period: 10s
   reload.enabled: true
 #All data indexed to Elasticsearch
-output.elasticsearch:
-  hosts: ["elasticsearch:9200"]
+#output.elasticsearch:
+#  hosts: ["elasticsearch:9200"]
+output.logstash:
+  hosts: ["127.0.0.1:5044"]
 logging.to_files: false

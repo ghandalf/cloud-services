@@ -1,0 +1,174 @@
+version: '3.7'
+
+services:
+
+   elasticsearch:
+      container_name: elasticsearch
+      hostname: elasticsearch
+      image: docker.elastic.co/elasticsearch/elasticsearch:6.4.3
+      environment:
+        - http.host=0.0.0.0
+        - transport.host=127.0.0.1
+        - bootstrap.memory_lock=true
+        - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m"
+      ulimits:
+       memlock:
+          soft: -1
+          hard: -1    
+      volumes:
+        - ./elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/elasticsearch.yml
+        - elastic-data:/data/server/analytic/elasticsearch
+      ports: ['9200:9200']
+      healthcheck:
+        test: ["CMD", "curl","-s" ,"-f", "-u", "elastic:changeme", "http://localhost:9200/_cat/health"]
+        interval: 60s     # default 30s
+        timeout: 60s      # default 30s
+        retries: 6        # default 3
+      networks: ['analytic_net']
+ 
+   kibana:
+      container_name: kibana
+      hostname: kibana
+      image: docker.elastic.co/kibana/kibana:6.4.3
+      environment:
+        - "ELASTICSEARCH_PASSWORD=changeme"
+        - "ELASTICSEARCH_URL=http://elasticsearch:9200"
+      volumes:
+        - ./kibana/kibana.yml:/usr/share/kibana/kibana.yml
+        - kibana-data:/data/server/analytic/kibana
+      ports: ['5601:5601']
+      healthcheck:
+        test: ["CMD", "curl", "-s", "-f", "http://localhost:5601/login"]
+        interval: 60s     # default 30s
+        timeout: 60s      # default 30s
+        retries: 6        # default 3
+      depends_on: ['elasticsearch']
+      networks: ['analytic_net']
+   
+   logstash:
+    container_name: logstash
+    hostname: logstash
+    image: docker.elastic.co/logstash/logstash:6.4.3
+    environment: 
+      - "ELASTICSEARCH_PASSWORD=changeme"
+      - "ELASTICSEARCH_URL=http://elasticsearch:9200"
+    volumes: 
+      - logstash-data:/data/server/analytic/logstash
+    ports: ['5044:5044', '9600:9600']
+    healthcheck:
+      test: ["CMD", "curl", "-XGET", "http://localhost:9600/?pretty"]
+      interval: 60s     # default 30s
+      timeout: 60s      # default 30s
+      retries: 6        # default 3
+    depends_on: ['elasticsearch']
+    networks: ['analytic_net']
+
+   # https://github.com/yeasy/docker-compose-files/blob/master/packetbeat_ek/packetbeat.yml
+   packetbeat:
+    container_name: packetbeat
+    hostname: packetbeat
+    user: root
+    image: docker.elastic.co/beats/packetbeat:6.4.3
+    environment: {} # We may need to get database metric.
+    volumes:
+      - ./beats/packetbeat/packetbeat.yml:/usr/share/packetbeat/packetbeat.yml
+      - packetbeat-data:/data/server/analytic/packetbeat
+    cap_add: ['NET_RAW', 'NET_ADMIN'] # Posix is used to grant privilege
+    # command: packetbeat -e -E output.elasticsearch.hosts=["localhost:9200"] -E output.elasticsearch.username=elastic -E output.elasticsearch.password=changeme -strict.perms=false
+    restart: on-failure
+    depends_on: ['logstash']
+    network_mode: host # packet in/out from host system
+
+
+volumes:
+  elastic-data:
+    driver: local
+  kibana-data:
+    driver: local
+  logstash-data:
+    driver: local
+  packetbeat-data:
+    driver: local
+    
+networks: {analytic_net: {}}
+
+#   heartbeat:
+#    container_name: hearbeat
+#    hostname: hearbeat
+#    image: docker.elastic.co/beats/heartbeat:6.4.3
+#    environment: {}
+      # - "ES_PASSWORD=changeme" 
+      # Is it the one since 3.7.1 or the other one above
+      # - "ELASTICSEARCH_PASSWORD=changeme"
+#    volumes:
+#      - ./beats/heartbeat/heartbeat.yml:/usr/share/heartbeat/heartbeat.yml
+#      - hearbeat-data:/data/server/analytic/heartbeat
+#    command: heartbeat -e -E output.elasticsearch.username=elastic -E output.elasticsearch.password=changeme -strict.perms=false
+#    restart: on-failure
+#    depends_on: ['logstash']
+#    networks: ['analytic_net']
+
+#  hearbeat-data:
+#    driver: local
+#  metricbeat-data:
+#    driver: local
+
+
+
+
+
+
+
+
+
+#   metricbeat:
+#    container_name: metricbeat
+#    hostname: metricbeat
+#    user: root
+#    image: docker.elastic.co/beats/metricbeat:6.4.3
+#    environment: {} # We may need to get database metric.
+#    volumes:
+#      - ./beats/metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml
+#      - ./beats/metricbeat/metricbeat.d/:/usr/share/metricbeat/modules.d/
+#      - /proc:/hostfs/proc:ro
+#      - /sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro
+#      - /var/run/docker.sock:/var/run/docker.sock
+#      - /:/hostfs:ro
+#      - metricbeat-data:/data/server/analytic/metricbeat
+#    command: metricbeat -e -system.hostfs=/hostfs -E output.elasticsearch.username=elastic -E output.elasticsearch.password=changeme -strict.perms=false
+#    restart: on-failure
+#    depends_on: ['logstash']
+#    networks: ['analytic_net']
+   
+   
+
+   # see: https://github.com/elastic/examples/blob/master/Miscellaneous/docker/full_stack_example/init/configure-stack.sh
+#   configure_stack:
+#    container_name: configure_stack
+#    hostname: configure_stack
+#    image: docker.elastic.co/beats/metricbeat:6.4.3
+#    environment: ['ELASTIC_VERSION=6.4.3','ES_PASSWORD=changeme','DEFAULT_INDEX_PATTERN=metricbeat-*']
+ #    volumes: ['./init/configure-stack.sh:/usr/local/bin/configure-stack.sh:ro','./init/pipelines/:/usr/local/bin/pipelines/','./init/templates/:/usr/local/bin/templates/']
+ #    Put the script in memory
+ #    command: ['/bin/bash', '-c', 'cat /usr/local/bin/configure-stack.sh | tr -d "\r" | bash']
+#    depends_on: ['elasticsearch','kibana']
+#    networks: ['analytic_net']
+
+
+
+#  filebeat-data:
+#    driver: local
+#   filebeat:
+#    container_name: filebeat
+#    hostname: filebeat
+#    user: root
+#    image: docker.elastic.co/beats/filebeat:6.4.3
+#    volumes:
+#      - ./beats/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml
+#      - ./beats/filebeat/prospectors.d/:/usr/share/filebeat/prospectors.d/
+#      - /var/lib/docker/containers:/hostfs/var/lib/docker/containers
+#      - filebeat-data:/usr/share/filebeat/data/
+#    networks: ['analytic_net']
+#    command: filebeat -e -E output.elasticsearch.username=elastic -E output.elasticsearch.password=changeme -strict.perms=false
+#    depends_on: ['elasticsearch']
+#    restart: on-failure
