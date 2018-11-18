@@ -23,13 +23,6 @@ services:
    kibana:
       container_name: kibana
       image: docker.elastic.co/kibana/kibana:6.4.3
-      environment:
-      #  ELASTICSEARCH_USERNAME: elastic 
-        ELASTICSEARCH_PASSWORD: changeme
-        ELASTICSEARCH_URL: http://elasticsearch:9200
-        #SERVER_NAME: kibana.dmi.com
-        #SERVER_HOST: "localhost"
-        #XPATH_MONITORING_UI_CONTAINER_ELASTICSEARCH_ENABLED: "true"
       volumes:
         - ./kibana/kibana.yml:/usr/share/kibana/config/kibana.yml
         - kibana-data:/usr/share/kibana/data
