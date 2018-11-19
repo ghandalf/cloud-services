@@ -3,7 +3,7 @@ network.host: 0.0.0.0
 transport.host: 0.0.0.0
 bootstrap.memory_lock: true
 
-node.name: service-node-1
+node.name: cloud-service-master-node
 node.master: true
 
 xpack.security.enabled: false
