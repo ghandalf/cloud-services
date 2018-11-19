@@ -51,6 +51,14 @@ services:
     depends_on: ['elasticsearch']
     networks: ['analytic_net']
 
+   heartbeat:
+    container_name: heartbeat
+    image: docker.elastic.co/beats/heartbeat:6.4.3
+    volumes:
+      - ./beats/heartbeat/heartbeat.yml:/usr/share/heartbeat/heartbeat.yml
+      -  hearbeat-data:/usr/share/heartbeat/data
+    depends_on: ['elasticsearch', 'kibana', 'logstash']
+    networks: ['analytic_net']
 
 volumes:
   elastic-data:
@@ -58,6 +66,8 @@ volumes:
   kibana-data:
     driver: local
   logstash-data:
+    driver: local
+  hearbeat-data:
     driver: local
   packetbeat-data:
     driver: local
