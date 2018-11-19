@@ -32,6 +32,13 @@ Some commands you can use with the script
    - ./service.sh info
    - ./service.sh status
 
+Logstash input beats and heartbeat are installed by default. We need to install logstash-input-metricbeat logstash-input-packetbeat. To do so:
+1. log into logstash container by executing on terminal: 
+   - docker exec -it logstash /bin/bash
+2. execute those commands:
+   - ./bin/logstash-plugin install logstash-input-xxxxx
+
+
 #### Contribution guidelines
 * Code review
 * Other guidelines
