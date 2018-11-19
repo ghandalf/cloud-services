@@ -251,13 +251,19 @@ function setUpSecurity() {
 }
 
 ###
-# Contain configuration needed for ElasticSearch and Kibana
-# In docker preferences, you need to add /data as File Sharing
+# Container internal configuration, 
+# This function is an helper for reminding how to connect and modify running container.
 ##
 function configuration() {
 	echo -e "\n${double_tab}${BRed}Not emplemented yet...${Color_Off}";
+	echo -e "\n${double_tab}${BRed}Connect to a container as root: docker exec -u 0 -it <container_name> /bin/bash${Color_Off}";
+	# docker exec -u 0 -it <container_name> /bin/bash
+	# heartbeat -e -E logging.level=debug
 }
 
+###
+# Use to connect as root to a specific container.
+##
 function bash() {
 	local container="";
 	local failure="false";
@@ -267,17 +273,29 @@ function bash() {
 		heartbeat) container=heartbeat;;
 		metricbeat) container=metricbeat;;
 		packetbeat) container=packetbeat;;
-		logstach) container=logstach;;
+		logstash) container=logstash;;
 		*)
-			echo -e "\n${double_tab}${Red}Please you need to provide a sub command <elasticsearch|kibana|heartbeat|metricbeat|packetbeat|logstach>${Color_Off}";
+			echo -e "\n${double_tab}${Red}Please you need to provide a sub command <elasticsearch|kibana|heartbeat|metricbeat|packetbeat|logstash>${Color_Off}";
 			failure="true";
 			;;
 	esac
 	if [ ${failure} == "false" ]; then
-		docker-compose -f ${compose_file} exec $container bash;
+		docker-compose -f ${compose_file} exec -u 0 -it $container bash;
 	fi
 }
 
+function findContainerPort() {
+	echo -e "\n";
+	for containerId in `docker ps -q`; do
+		echo -e "\t\t${Blue}`docker inspect --format "{{.NetworkSettings.Networks.config_analytic_net.IPAddress}}:{{.Name}}" \
+		$containerId`${Color_off}";
+	done
+}
+
+###
+# Function use to validate the content docker-compose file
+# It will not validate the specific container config file.
+##
 function validate() {
 	case $1 in
 		local)
@@ -372,6 +390,8 @@ case ${command} in
 		network $args;;
 	pull)
 		pull;;
+	port)
+		findContainerPort;;
 	security)
 		setUpSecurity;;
 	start)
