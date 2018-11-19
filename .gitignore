@@ -7,3 +7,5 @@ test/
 config/TMP.yml
 config/docker-compose.OLD
 
+config/beats/heartbeat/heartbeat.fail.yml
+
