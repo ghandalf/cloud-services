@@ -189,7 +189,8 @@ function status() {
 	#echo -e "\n${double_tab}${Yellow}ElasticSearch${Color_Off} status: ${Green}`curl -s -f -u elastic:changeme http://localhost:9200/_cat/health`${Color_Off}";
 	echo -e "\n${double_tab}${Yellow}ElasticSearch${Color_Off} status: \n${Green}`curl -s localhost:9200/`${Color_Off}";
 	echo -e "${Green}`curl -s localhost:9200/_xpack/license`${Color_Off}";
-	echo -e "\n${double_tab}${Yellow}Logstach${Color_Off} status: \n${Green}`curl -XGET "localhost:9600/?pretty"`${Color_Off}";
+	echo -e "\n${double_tab}${Yellow}Logstash${Color_Off} status: \n${Green}`curl -XGET "localhost:9600/?pretty"`${Color_Off}";
+	echo -e "${Green}Logstash status [${Yellow}`netstat -na | grep 5044 | awk -F' ' NR==1{'printf"%s\n", $6'}`${Green}] on port 5044.${Color_Off}";
 }
 
 ###
