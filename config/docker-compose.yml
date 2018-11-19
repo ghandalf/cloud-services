@@ -35,6 +35,21 @@ services:
       depends_on: ['elasticsearch']
       networks: ['analytic_net']
 
+   logstash:
+    container_name: logstash
+    image: docker.elastic.co/logstash/logstash:6.4.3
+    volumes: 
+      - ./logstash/logstash.yml:/usr/share/logstash/config/logstash.yml
+      - ./logstash/pipeline/logstash.conf:/usr/share/logstash/config/pipeline/logstash.conf
+      - logstash-data:/usr/share/logstash/data
+    ports: ['5044:5044', '9600:9600']
+    healthcheck:
+      test: ["CMD", "curl", "-XGET", "http://localhost:9600/?pretty"]
+      interval: 60s
+      timeout: 60s
+      retries: 6
+    depends_on: ['elasticsearch']
+    networks: ['analytic_net']
 
 
 volumes:
