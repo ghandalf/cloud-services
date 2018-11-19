@@ -1,8 +1,6 @@
 http.host: 0.0.0.0
-# read password from logstash.keystore
-# xpack.monitoring.collection.enabled: true
-xpack.monitoring.elasticsearch.password: changeme
-xpack.monitoring.elasticsearch.url: https://127.0.0.1:9200
 xpack.monitoring.elasticsearch.username: elastic
+xpack.monitoring.elasticsearch.password: changeme
+xpack.monitoring.elasticsearch.url: https://elasticsearch:9200
 xpack.monitoring.enabled: true
-# xpack.monitoring.elasticsearch.ssl.ca: /usr/share/logstash/config/certs/ca/ca.crt
+# xpack.monitoring.collection.enabled: true

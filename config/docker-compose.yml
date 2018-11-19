@@ -10,7 +10,7 @@ services:
           soft: -1
           hard: -1    
       volumes:
-        - ./elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/elasticsearch.yml
+        - ./elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
         - elastic-data:/usr/share/elasticsearch/data
       ports: ['9200:9200', '9300:9300']
       healthcheck:
@@ -34,6 +34,7 @@ services:
         retries: 6
       depends_on: ['elasticsearch']
       networks: ['analytic_net']
+
 
 
 volumes:
