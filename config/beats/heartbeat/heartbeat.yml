@@ -17,7 +17,8 @@ processors:
 logging.level: info
 
 setup.kibana:
-  host: "kibana:5601"
+  host: "http://kibana:5601"
+  protocol: "http"
 
 output.logstash:
   hosts: ["127.0.0.1:5044"]

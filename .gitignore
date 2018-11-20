@@ -9,3 +9,4 @@ config/docker-compose.OLD
 
 config/beats/heartbeat/heartbeat.fail.yml
 
+installation.info

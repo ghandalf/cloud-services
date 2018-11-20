@@ -16,6 +16,13 @@ On Ubuntu machine the update for docker-compose lead you to /usr/local/bin/docke
 2. docker-compose version 1.23.1
 3. docker-machine version v0.16.0
 
+Once docker tools are install, on MAC and Linux use service.sh script to speed up the process.
+./service.sh pull # Will pull the images we need.
+./service.sh start swarm # It use docker-compose to start containers.
+Open an other terminal go under the project
+./service.sh status short # Will give you some usefull information
+./service.sh status long # More information
+
 I have created a script to avoid hand writing, some command are long and error prone.
 Use the script to pull images needed for the project. 
 1. In a terminal move under cloud-services
