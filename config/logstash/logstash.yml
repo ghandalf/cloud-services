@@ -1,5 +1,10 @@
-http.host: 0.0.0.0
-xpack.monitoring.elasticsearch.username: elastic
-xpack.monitoring.elasticsearch.password: changeme
-xpack.monitoring.elasticsearch.url: http://elasticsearch:9200
-xpack.monitoring.enabled: true
+# http.host: 0.0.0.0
+xpack.monitoring:
+  enabled: true
+  elasticsearch:
+    username: elastic
+    password: changeme
+    url: http://elasticsearch:9200
+
+log.level: debug
+
