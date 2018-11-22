@@ -6,9 +6,6 @@ metricbeat.config.modules:
     index.number_of_shards: 1
     index.codec: best_compression
 
-  # http.host: "localhost"
-  # http.port: 5066
-
 logging.level: info
 
 xpack.monitoring:
@@ -19,12 +16,9 @@ xpack.monitoring:
     password: changeme
 
 output.logstash:
-  hosts: ["localhost:5044"]
+  hosts: ["logstash:5044"]
   index: metricbeat
 
 setup.kibana:
    host: "http://kibana:5601"
    protocol: "http"
-
-
-#logging.to_files: false

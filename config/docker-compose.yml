@@ -58,22 +58,22 @@ services:
   #     timeout: 15s
   #     retries: 5
 
-   heartbeat:
-    container_name: heartbeat
-    image: docker.elastic.co/beats/heartbeat:6.4.3
-    volumes:
-      - ./beats/heartbeat/heartbeat.yml:/usr/share/heartbeat/heartbeat.yml:ro
-      # - ./beats/heartbeat/monitors.d/:/usr/share/heartbeat/monitors.d/:ro
-      -  hearbeat-data:/usr/share/heartbeat/data
-    command: --strict.perms=false -e  # -e flag to log to stderr and disable syslog/file output
-    restart: on-failure
-    depends_on: ['elasticsearch', 'logstash']
-    networks: ['analytic_net']
-    healthcheck:
-      test: heartbeat test config
-      interval: 30s
-      timeout: 15s
-      retries: 5
+  #  heartbeat:
+  #   container_name: heartbeat
+  #   image: docker.elastic.co/beats/heartbeat:6.4.3
+  #   volumes:
+  #     - ./beats/heartbeat/heartbeat.yml:/usr/share/heartbeat/heartbeat.yml:ro
+  #     # - ./beats/heartbeat/monitors.d/:/usr/share/heartbeat/monitors.d/:ro
+  #     -  hearbeat-data:/usr/share/heartbeat/data
+  #   command: --strict.perms=false -e  # -e flag to log to stderr and disable syslog/file output
+  #   restart: on-failure
+  #   depends_on: ['elasticsearch', 'logstash']
+  #   networks: ['analytic_net']
+  #   healthcheck:
+  #     test: heartbeat test config
+  #     interval: 30s
+  #     timeout: 15s
+  #     retries: 5
 
    metricbeat:
       container_name: metricbeat
@@ -91,6 +91,7 @@ services:
       restart: on-failure
       depends_on: ['elasticsearch', 'logstash']
       networks: ['analytic_net']
+      links: ['logstash']
       healthcheck:
         test: metricbeat test config
         interval: 30s

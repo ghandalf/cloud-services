@@ -183,13 +183,37 @@ function info() {
 	#docker service ls;
 	for container in `docker ps -a --format {{.Names}}`; do
 		echo -e "\t${Yellow}$container${Color_Off} ip: [${Green}`docker container port $container`${Color_Off}]";
+		echo -e "\t${Yellow}$container${Color_Off} log: [${Green}`docker inspect --format {{.LogPath}} $container`${Color_Off}]";
 	done
 
-	echo -e "In case you need to install some tools in a container execute: \
+	echo -e "\n\tIn case you need to install some tools in a container execute: \
 	${Green}docker exec -u 0 -it heartbeat bash -c \"yum install nc\" \
-	docker exec -u 0 -it heartbeat bash -c \"yum install -y net-tools iproute\"";
+	docker exec -u 0 -it heartbeat bash -c \"yum install -y net-tools iproute\" \
+	to see the log of a container: docker logs -f containername${Color_Off}";
 	echo -e "\n";
 
+}
+
+function debugContainer() {
+	local container="";
+	local failure="false";
+	case $1 in
+		elasticsearch) container=elasticsearch;;
+		filebeat) container=filebeat;;
+		heartbeat) container=heartbeat;;
+		kibana) container=kibana;;
+		logstash) container=logstash;;
+		metricbeat) container=metricbeat;;
+		packetbeat) container=packetbeat;;
+		*)
+			echo -e "\n${dt}${Red}Please you need to provide a sub command <elasticsearch|filebeat|heartbeat|kibana|logstash|metricbeat|packetbeat>${Color_Off}";
+			failure="true";
+			;;
+	esac
+	if [ ${failure} == "false" ]; then
+		docker exec -u 0 -it $container bash -c "./$container export config";
+		docker exec -u 0 -it $container bash -c "./$container test output -e -d \"*\"";
+	fi
 }
 
 function status() {
@@ -426,6 +450,8 @@ case ${command} in
 		bash $args;;
 	clean)
 		clean;;
+	debug)
+		debugContainer $args;;
 	diagnose)
 		diagnose;;
 	info)
