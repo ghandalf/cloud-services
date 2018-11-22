@@ -10,7 +10,7 @@ services:
           soft: -1
           hard: -1    
       volumes:
-        - ./elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+        - ./elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
         - elastic-data:/usr/share/elasticsearch/data
       ports: ['9200:9200', '9300:9300']
       healthcheck:
@@ -20,27 +20,15 @@ services:
         retries: 6
       networks: ['analytic_net']
 
-   kibana:
-      container_name: kibana
-      image: docker.elastic.co/kibana/kibana:6.4.3
-      volumes:
-        - ./kibana/kibana.yml:/usr/share/kibana/config/kibana.yml
-        - kibana-data:/usr/share/kibana/data
-      ports: ['5601:5601']
-      healthcheck:
-        test: ["CMD", "curl", "-s", "-f", "http://localhost:5601/login"]
-        interval: 60s
-        timeout: 60s
-        retries: 6
-      depends_on: ['elasticsearch']
-      networks: ['analytic_net']
-
    logstash:
     container_name: logstash
     image: docker.elastic.co/logstash/logstash:6.4.3
+    environment: 
+      - -Xms2g
+      - -Xmx2g
     volumes: 
-      - ./logstash/logstash.yml:/usr/share/logstash/config/logstash.yml
-      - ./logstash/pipeline/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+      - ./logstash/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
+      - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
       - logstash-data:/usr/share/logstash/data
     ports: ['5044:5044', '9600:9600']
     healthcheck:
@@ -51,20 +39,79 @@ services:
     depends_on: ['elasticsearch']
     networks: ['analytic_net']
 
+  #  filebeat:
+  #   container_name: filebeat
+  #   image: docker.elastic.co/beats/filebeat:6.4.3
+  #   user: root
+  #   volumes:
+  #     - ./beats/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml
+  #     - ./beats/filebeat/prospectors.d/:/usr/share/filebeat/prospectors.d/
+  #     - /var/lib/docker/containers:/hostfs/var/lib/docker/containers
+  #     - filebeat-data:/usr/share/filebeat/data/
+  #   command: --strict.perms=false
+  #   restart: on-failure
+  #   depends_on: ['elasticsearch', 'logstash']
+  #   networks: ['analytic_net']
+  #   healthcheck:
+  #     test: filebeat test config
+  #     interval: 30s
+  #     timeout: 15s
+  #     retries: 5
+
    heartbeat:
     container_name: heartbeat
     image: docker.elastic.co/beats/heartbeat:6.4.3
-    command: --strict.perms=false -e  # -e flag to log to stderr and disable syslog/file output
     volumes:
-      - ./beats/heartbeat/heartbeat.yml:/usr/share/heartbeat/heartbeat.yml
+      - ./beats/heartbeat/heartbeat.yml:/usr/share/heartbeat/heartbeat.yml:ro
+      # - ./beats/heartbeat/monitors.d/:/usr/share/heartbeat/monitors.d/:ro
       -  hearbeat-data:/usr/share/heartbeat/data
-    depends_on: ['elasticsearch', 'kibana', 'logstash']
+    command: --strict.perms=false -e  # -e flag to log to stderr and disable syslog/file output
+    restart: on-failure
+    depends_on: ['elasticsearch', 'logstash']
     networks: ['analytic_net']
     healthcheck:
       test: heartbeat test config
       interval: 30s
       timeout: 15s
       retries: 5
+
+   metricbeat:
+      container_name: metricbeat
+      image: docker.elastic.co/beats/metricbeat:6.4.3
+      user: root
+      volumes:
+        - ./beats/metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro
+        - ./beats/metricbeat/modules.d/:/usr/share/metricbeat/modules.d:ro
+        - /proc:/hostfs/proc:ro
+        - /sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro
+        - /var/run/docker.sock:/var/run/docker.sock
+        - /:/hostfs:ro
+        - metricbeat-data:/data/server/analytic/metricbeat
+      command: metricbeat -e -system.hostfs=/hostfs -strict.perms=false
+      restart: on-failure
+      depends_on: ['elasticsearch', 'logstash']
+      networks: ['analytic_net']
+      healthcheck:
+        test: metricbeat test config
+        interval: 30s
+        timeout: 15s
+        retries: 5
+
+   kibana:
+      container_name: kibana
+      image: docker.elastic.co/kibana/kibana:6.4.3
+      volumes:
+        - ./kibana/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
+        - kibana-data:/usr/share/kibana/data
+      ports: ['5601:5601']
+      healthcheck:
+        test: ["CMD", "curl", "-s", "-f", "http://localhost:5601/login"]
+        interval: 60s
+        timeout: 60s
+        retries: 6
+      restart: always
+      depends_on: ['elasticsearch']
+      networks: ['analytic_net']
 
 volumes:
   elastic-data:
@@ -73,11 +120,15 @@ volumes:
     driver: local
   logstash-data:
     driver: local
+  filebeat-data:
+    driver: local
   hearbeat-data:
     driver: local
-  packetbeat-data:
+  metricbeat-data:
     driver: local
-  packetbeat-log:
-    driver: local
+  # packetbeat-data:
+  #   driver: local
+  # packetbeat-log:
+  #   driver: local
     
 networks: {analytic_net: {}}
