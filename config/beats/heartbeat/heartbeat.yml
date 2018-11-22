@@ -11,11 +11,9 @@ heartbeat.monitors:
 - type: icmp
   schedule: '@every 5s'
   hosts: ["logstash", "elascticsearch", "kibana"]
-  ports: [5044, 9200, 9600, 5601]
 - type: tcp
   schedule: '@every 5s'
   hosts: ["logstash", "elascticsearch", "kibana"]
-  ports: [5044, 9200, 5601]
   check.send: "Echo"
   check.receive: "Echo"
 - type: http
@@ -26,7 +24,7 @@ heartbeat.monitors:
 heartbeat.scheduler:
   limit: 10
 
-logging.level: debug
+logging.level: info
 
 xpack.monitoring:
   enabled: true
@@ -36,7 +34,7 @@ xpack.monitoring:
     password: changeme
 
 output.logstash:
-  hosts: ["localhost:5044"]
+  hosts: ["logstash:5044"]
   index: hearbeat
 
 setup.kibana:
