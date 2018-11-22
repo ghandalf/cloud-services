@@ -45,6 +45,9 @@ Logstash input beats and heartbeat are installed by default. We need to install 
 2. execute those commands:
    - ./bin/logstash-plugin install logstash-input-xxxxx
 
+#### Startup all containers ####
+You will find some errors in the log file at startup. At least some of them are normal processs due 
+to ELK philosophy. A container is not aware of the others unless they are up and running for communication.
 
 #### Contribution guidelines
 * Code review
