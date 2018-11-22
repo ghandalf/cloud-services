@@ -336,8 +336,7 @@ function findContainerPort() {
 	#	`docker network inspect config_analytic_net --format "{{.Containers}}{{.Name}}"`${Color_off}";
 	#	#echo -e "\n\t\t[${Yellow}`docker inspect $containerId`]${Color_off}"
 	#done
-	echo -e "\n${Yellow}`docker inspect --format='{{.Name}}\t{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(docker ps -q)`${Color_off}";
-	echo -e "${Color_off}";
+	echo -e "\n${Yellow}`docker inspect --format='{{.Name}}\t{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(docker ps -q)`${Color_Off}";
 }
 
 ###
