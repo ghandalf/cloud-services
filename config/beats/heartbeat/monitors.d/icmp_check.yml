@@ -1,0 +1,5 @@
+- type: icmp
+  schedule: '@every 5s'
+  hosts: ["logstash", "elascticsearch", "kibana"]
+  ports: [5044, 9200, 9600, 5601]
+  # mode: any
