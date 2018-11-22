@@ -8,6 +8,19 @@ filebeat.modules:
   syslog:
     var.paths: ["/var/log/host/system.log*"]
 
-# Indexing data to ElasticSearch
-output.elasticsearch:
-  hosts: ["elasticsearch:9200"]
+logging.level: info
+
+xpack.monitoring:
+  enabled: true
+  elasticsearch:
+    hosts: ["http://elasticsearch:9200"]
+    useranme: elastic
+    password: changeme
+
+output.logstash:
+  hosts: ["localhost:5044"]
+  index: filebeat
+
+setup.kibana:
+   host: "http://kibana:5601"
+   protocol: "http"
