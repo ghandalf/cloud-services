@@ -9,7 +9,7 @@
 application=$0
 command=$1
 args=$2
-double_tab="\t\t"
+dt="\t\t"
 
 ###
 # Pull the images with the define version in docker.properties files
@@ -22,16 +22,16 @@ function pull() {
 }
 
 function loadResources() {
-	# echo -e "\n${double_tab}$0 load resources...";
+	# echo -e "\n${dt}$0 load resources...";
 	if [ -f ./config/docker.properties ]; then
 		source ./config/docker.properties;
 	else
-		echo -e "\n${double_tab}${BRed}You need to provide the file docker.properties under config directory...${Color_Off}\n";
+		echo -e "\n${dt}${BRed}You need to provide the file docker.properties under config directory...${Color_Off}\n";
 	fi
 	if [ -f ./env/colors.properties ]; then
 		source ./env/colors.properties;
 	else
-		echo -e "\n${double_tab}${BRed}You need to provide colors.properties file under env directory...${Color_Off}\n";
+		echo -e "\n${dt}${BRed}You need to provide colors.properties file under env directory...${Color_Off}\n";
 	fi
 }
 
@@ -40,27 +40,27 @@ function loadResources() {
 ##
 function network() {
     local result=`docker network ls | grep ${analytic_network} | awk {'printf "%s\n", $2'}`;
-	local exist_message="\n${double_tab}The docker network [${analytic_network}] already exists.";
+	local exist_message="\n${dt}The docker network [${analytic_network}] already exists.";
     case $1 in
 		create)
     		#echo -e "RESULT: $result";
     		if [ $result ]; then
         		echo -e $exist_message;
     		else 
-        		echo -e "\n${double_tab}Creating docker network [${analytic_network}]";
+        		echo -e "\n${dt}Creating docker network [${analytic_network}]";
         		docker network create ${analytic_network} --driver=bridge;
     		fi
 			;;
 		remove)
 			if [ $result ]; then
-				echo -e "\n${double_tab}Removing docker network [${analytic_network}]";
+				echo -e "\n${dt}Removing docker network [${analytic_network}]";
 				docker network rm ${analytic_network};
 			else
-				echo -e "\n${double_tab}Docker network [${analytic_network}] doesn't exist.";
+				echo -e "\n${dt}Docker network [${analytic_network}] doesn't exist.";
 			fi
 			;;
 		*)
-			echo -e "\n${double_tab}${BRed}Please you need to provide a sub command <create|remove>.${Color_Off}";
+			echo -e "\n${dt}${BRed}Please you need to provide a sub command <create|remove>.${Color_Off}";
 			;;
 	esac
 	docker network ls;
@@ -126,7 +126,7 @@ function start() {
 			docker-compose -f $compose_file up;
 			;;
 		*)
-			echo -e "\n${double_tab}${BRed}Please you need to provide a sub command <analytic|swarm>.${Color_Off}";
+			echo -e "\n${dt}${BRed}Please you need to provide a sub command <analytic|swarm>.${Color_Off}";
 			;;
 	esac
 }
@@ -145,7 +145,7 @@ function stop() {
 			stopSwarm;
 			;;
 		*)
-			echo -e "\n${double_tab}Please you need to provide a sub command <analytic|swarm>";
+			echo -e "\n${dt}Please you need to provide a sub command <analytic|swarm>";
 			;;
 	esac
 }
@@ -155,7 +155,7 @@ function stop() {
 #
 ##
 function clean() {
-    echo -e "\n${double_tab}Remove background running containers\n";
+    echo -e "\n${dt}Remove background running containers\n";
 	for i in "${images[@]}"; do
 		local containerName=`echo $i | awk -F'/' {'printf $3'} | awk -F':' {'printf $1'}`;
     	docker stop $containerName;
@@ -181,37 +181,52 @@ function info() {
 	echo -e "\n";
 	docker network ls;
 	#docker service ls;
+	for container in `docker ps -a --format {{.Names}}`; do
+		echo -e "\t${Yellow}$container${Color_Off} ip: [${Green}`docker container port $container`${Color_Off}]";
+	done
+
+	echo -e "In case you need to install some tools in a container execute: \
+	${Green}docker exec -u 0 -it heartbeat bash -c \"yum install nc\" \
+	docker exec -u 0 -it heartbeat bash -c \"yum install -y net-tools iproute\"";
 	echo -e "\n";
+
 }
 
 function status() {
 	case $args in
 		long)
+			# Kibana
+			echo -e "\n${dt}${Yellow}Kibana${Color_Off} status: \n${Green}`curl -s -f localhost:5601/api/status`${Color_Off}";
+			
 			# ElasticSearch
-			echo -e "\n${double_tab}${Yellow}ElasticSearch${Color_Off} status: \n${Green}`curl -s localhost:9200/`${Color_Off}";
+			echo -e "\n${dt}${Yellow}ElasticSearch${Color_Off} status: \n${Green}`curl -s localhost:9200/`${Color_Off}";
 			echo -e "${Green}`curl -s localhost:9200/_xpack/license`${Color_Off}";
 			echo -e "${Green}`curl -XGET http://localhost:9200/_cluster/state?pretty`${Color_Off}";
 			#echo -e "${Green}`curl -s -f -u elastic:changeme http://localhost:9200/_cat/health`${Color_Off}";
 
-			# Kibana
-			echo -e "\n${double_tab}${Yellow}Kibana${Color_Off} status: \n${Green}`curl -s -f localhost:5601/api/status`${Color_Off}";
-			
 			# Logstash
-			echo -e "\n${double_tab}${Yellow}Logstash${Color_Off} status: \n${Green}`curl -XGET "localhost:9600/?pretty"`${Color_Off}";
+			echo -e "\n${dt}${Yellow}Logstash${Color_Off} status: \n${Green}`curl -XGET "localhost:9600/?pretty"`${Color_Off}";
 			echo -e "${Green}Logstash status [${Yellow}`netstat -na | grep 5044 | awk -F' ' NR==1{'printf"%s\n", $6'}`${Green}] on port 5044.${Color_Off}";
+			echo -e "${Green}Logstash status [${Yellow}`netstat -na | grep 5000 | awk -F' ' NR==1{'printf"%s\n", $6'}`${Green}] on port 5000.${Color_Off}";
 			;;
 		short)
-			# ElasticSearch
-			echo -e "\n${double_tab}${Yellow}ElasticSearch${Color_Off} status: \n${Green}`curl -s localhost:9200/`${Color_Off}";
-
 			# Kibana
-			echo -e "\n${double_tab}${Yellow}Kibana${Color_Off} status: \n${Green}`curl -s -f localhost:5601/api/status`${Color_Off}";
+			echo -e "\n${dt}${Yellow}Kibana${Color_Off} status: \n${Green}`curl -s -f localhost:5601/api/status`${Color_Off}";
+
+			# ElasticSearch
+			echo -e "\n${dt}${Yellow}ElasticSearch${Color_Off} status: \n${Green}`curl -s localhost:9200/`${Color_Off}";
+			echo -e "\n${dt}${Yellow}ElasticSearch${Color_Off} status: \n${Green}`curl http://localhost:9200/_cat/indices?pretty`${Color_Off}";
+			#for line in `curl http://localhost:9200/_cat/indices?pretty`; do
+				#local status=echo $line | awk -F' ' {'printf "%s", $1'}
+			#	echo -e "$line";
+			#done
 			
 			# Logstash
-			echo -e "\n${double_tab}${Yellow}Logstash${Color_Off} status [${Yellow}`netstat -na | grep 5044 | awk -F' ' NR==1{'printf"%s\n", $6'}`${Green}] on port 5044.${Color_Off}";
+			echo -e "\n${dt}${Yellow}Logstash${Color_Off} status [${Yellow}`netstat -na | grep 5044 | awk -F' ' NR==1{'printf"%s\n", $6'}`${Green}] on port 5044.${Color_Off}";
+			echo -e "${dt}${Yellow}Logstash${Color_Off} status [${Yellow}`netstat -na | grep 5000 | awk -F' ' NR==1{'printf"%s\n", $6'}`${Green}] on port 5000.${Color_Off}";
 			;;
 		*)
-			echo -e "\n${double_tab}${Red}Please you need to provide a sub command <long|short>${Color_Off}";
+			echo -e "\n${dt}${Red}Please you need to provide a sub command <long|short>${Color_Off}";
 			failure="true";
 			;;
 	esac
@@ -255,8 +270,8 @@ function setUpSecurity() {
 # This function is an helper for reminding how to connect and modify running container.
 ##
 function configuration() {
-	echo -e "\n${double_tab}${BRed}Not emplemented yet...${Color_Off}";
-	echo -e "\n${double_tab}${BRed}Connect to a container as root: docker exec -u 0 -it <container_name> /bin/bash${Color_Off}";
+	echo -e "\n${dt}${BRed}Not emplemented yet...${Color_Off}";
+	echo -e "\n${dt}${BRed}Connect to a container as root: docker exec -u 0 -it <container_name> /bin/bash${Color_Off}";
 	# docker exec -u 0 -it <container_name> /bin/bash
 	# heartbeat -e -E logging.level=debug
 }
@@ -269,27 +284,36 @@ function bash() {
 	local failure="false";
 	case $1 in
 		elasticsearch) container=elasticsearch;;
-		kibana) container=kibana;;
+		filebeat) container=filebeat;;
 		heartbeat) container=heartbeat;;
+		kibana) container=kibana;;
+		logstash) container=logstash;;
 		metricbeat) container=metricbeat;;
 		packetbeat) container=packetbeat;;
-		logstash) container=logstash;;
 		*)
-			echo -e "\n${double_tab}${Red}Please you need to provide a sub command <elasticsearch|kibana|heartbeat|metricbeat|packetbeat|logstash>${Color_Off}";
+			echo -e "\n${dt}${Red}Please you need to provide a sub command <elasticsearch|filebeat|heartbeat|kibana|logstash|metricbeat|packetbeat>${Color_Off}";
 			failure="true";
 			;;
 	esac
 	if [ ${failure} == "false" ]; then
-		docker-compose -f ${compose_file} exec -u 0 -it $container bash;
+		docker exec -u 0 -it $container /bin/bash;
 	fi
 }
 
+###
+# Inspect network information in the container.
+##
 function findContainerPort() {
-	echo -e "\n";
-	for containerId in `docker ps -q`; do
-		echo -e "\t\t${Blue}`docker inspect --format "{{.NetworkSettings.Networks.config_analytic_net.IPAddress}}:{{.Name}}" \
-		$containerId`${Color_off}";
-	done
+	#echo -e "\n";
+	#echo -e "\n${Yellow}`docker network inspect config_analytic_net`${Color_off}"
+	
+	#for containerId in `docker ps -a --no-trunc --format {{.ID}}`; do
+	#	echo -e "\t\t${Blue}\
+	#	`docker network inspect config_analytic_net --format "{{.Containers}}{{.Name}}"`${Color_off}";
+	#	#echo -e "\n\t\t[${Yellow}`docker inspect $containerId`]${Color_off}"
+	#done
+	echo -e "\n${Yellow}`docker inspect --format='{{.Name}}\t{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(docker ps -q)`${Color_off}";
+	echo -e "${Color_off}";
 }
 
 ###
@@ -300,12 +324,31 @@ function validate() {
 	case $1 in
 		local)
 			docker-compose -f ${compose_file} config;
+			## Go to heach container and call ./metricbeat test config
+			local command="";
+			for container in `docker ps -a --format "{{.Names}}"`; do
+				case $container in
+					metricbeat|heartbeat)
+						command="$container test config";;
+					logstash)
+						command="$container --config.test_and_exit";;
+					kibana|elasticsearch)
+						command="none";;
+					*)
+						echo -e "\n\t${Red} Unkonwn container: [$container]";
+				esac
+
+				if [ ! "$command" = "none" ]; then
+					echo -e "\n${Green} Test the config for [$container] container: \
+					${Yellow}`docker exec -u 0 -it $container bash -c \"$command\"` ${Color_Off}";
+				fi
+			done 
 			;;
 		prod)
 			docker-compose -f ${compose_prod_file} config;
 			;;
 		*)
-			echo -e "\n${double_tab}${BRed}Please you need to provide argument <local|prod>.${Color_Off}";
+			echo -e "\n${dt}${BRed}Please you need to provide argument <local|prod>.${Color_Off}";
 		;;
 	esac
 }
@@ -318,12 +361,12 @@ function validate() {
 function update() {
 	case $args in
 		docker)
-			echo -e "\n${double_tab}${Green}docker version [${Red}`docker --version`${Green}] \n" \
-				"${double_tab}docker-compose [${Red}`docker-compose --version`${Green}] \n" \
-				"${double_tab}docker-machine [${Red}`docker-machine --version`${Green}] \n" \
-				"${double_tab}will be updated with the latest release. \n" \
-				"${double_tab}Important note we are running in experimental mode: [${Red}'`docker version -f {{.Server.Experimental}}`'${Green}] \n" \
-				"${double_tab}If true, ${Yellow}you will have to change the value when you go in production.${Color_Off}";
+			echo -e "\n${dt}${Green}docker version [${Red}`docker --version`${Green}] \n" \
+				"${dt}docker-compose [${Red}`docker-compose --version`${Green}] \n" \
+				"${dt}docker-machine [${Red}`docker-machine --version`${Green}] \n" \
+				"${dt}will be updated with the latest release. \n" \
+				"${dt}Important note we are running in experimental mode: [${Red}'`docker version -f {{.Server.Experimental}}`'${Green}] \n" \
+				"${dt}If true, ${Yellow}you will have to change the value when you go in production.${Color_Off}";
 
 			local OS=`uname -s`;
 			case $OS in 
@@ -355,7 +398,7 @@ function update() {
 			esac
 			;;
 		*)
-			echo -e "\n${double_tab}${BRed}Please you need to provide argument <docker>.${Color_Off}";
+			echo -e "\n${dt}${BRed}Please you need to provide argument <docker>.${Color_Off}";
 			;;
 	esac
 }
@@ -366,12 +409,13 @@ function diagnose() {
 
 function usage() {
     echo -e "\n\tUsage:";
-    echo -e "${double_tab}$0 <pull|clean|start|stop|clean|info|status|validate|security>";
+    echo -e "${dt}$0 <pull|clean|start|stop|clean|info|status|validate|security>";
 	echo -e "\n";
 }
 
 function finish() {
-	echo -e "\n${double_tab}${Cyan}Function finish() is not implemented yet. Will be a graceful shutdown process...${Color_Off}\n";
+	echo -e "";
+	#echo -e "\n${dt}${Cyan}Function finish() is not implemented yet. Will be a graceful shutdown process...${Color_Off}\n";
 }
 trap finish EXIT;
 
