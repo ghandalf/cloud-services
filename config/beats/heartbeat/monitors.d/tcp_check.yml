@@ -1,7 +1,5 @@
 - type: tcp
   schedule: '@every 5s'
   hosts: ["logstash", "elascticsearch", "kibana"]
-  ports: [7]
   check.send: "Echo"
   check.receive: "Echo"
-  # mode: any
