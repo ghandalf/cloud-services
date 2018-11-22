@@ -1,11 +1,30 @@
 metricbeat.config.modules:
-  # As linux system auto update .modules.d sub directory.
   path: ${path.config}/modules.d/*.yml
   reload.period: 10s
   reload.enabled: true
+  setup.template.settings:
+    index.number_of_shards: 1
+    index.codec: best_compression
 
-#output.elasticsearch:
-#  hosts: ["elasticsearch:9200"]
+  # http.host: "localhost"
+  # http.port: 5066
+
+logging.level: info
+
+xpack.monitoring:
+  enabled: true
+  elasticsearch:
+    hosts: ["http://elasticsearch:9200"]
+    useranme: elastic
+    password: changeme
+
 output.logstash:
-  hosts: ["127.0.0.1:5044"]
-logging.to_files: false
+  hosts: ["localhost:5044"]
+  index: metricbeat
+
+setup.kibana:
+   host: "http://kibana:5601"
+   protocol: "http"
+
+
+#logging.to_files: false
