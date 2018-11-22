@@ -2,8 +2,7 @@ cluster.name: "cloud-service-cluster"
 network.host: 0.0.0.0
 transport.host: 0.0.0.0
 bootstrap.memory_lock: true
-
-node.name: cloud-service-master-node
+node.name: "master-node"
 node.master: true
 
 xpack.graph.enabled: false
