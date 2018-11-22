@@ -6,3 +6,4 @@ elasticsearch.password: changeme
 server.ssl.enabled: false
 xpack.monitoring.ui.container.elasticsearch.enabled: true
 xpack.monitoring.enabled: true
+xpack.reporting.encryptionKey: "OurSecretWillBeMuchMoreComplecated"
