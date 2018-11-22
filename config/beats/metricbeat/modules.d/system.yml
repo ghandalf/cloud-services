@@ -13,5 +13,5 @@
   enabled: true
   period: 10s
   processes: ['.*']
-  cpu_ticks: true
+  cpu_ticks: true # FIXME Deprecated
   process.cgroups.enabled: true
