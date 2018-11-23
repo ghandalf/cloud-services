@@ -1,0 +1,11 @@
+- type: docker
+  enabled: true
+
+  # Combine partial lines flagged by `json-file` format
+  #combine_partials: true
+
+  # Use this to read from all containers, replace * with a container id to read from one:
+  containers:
+   stream: all # can be all, stdout or stderr
+   ids:
+     - '*'

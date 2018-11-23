@@ -8,7 +8,9 @@ services:
       ulimits:
        memlock:
           soft: -1
-          hard: -1    
+          hard: -1
+      environment:
+        - "TZ=America/Toronto"
       volumes:
         - ./elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
         - elastic-data:/usr/share/elasticsearch/data
@@ -24,6 +26,7 @@ services:
     container_name: logstash
     image: docker.elastic.co/logstash/logstash:6.4.3
     environment: 
+      - "TZ=America/Toronto"
       - -Xms2g
       - -Xmx2g
     volumes: 
@@ -39,32 +42,57 @@ services:
     depends_on: ['elasticsearch']
     networks: ['analytic_net']
 
-  #  filebeat:
-  #   container_name: filebeat
-  #   image: docker.elastic.co/beats/filebeat:6.4.3
-  #   user: root
-  #   volumes:
-  #     - ./beats/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml
-  #     - ./beats/filebeat/prospectors.d/:/usr/share/filebeat/prospectors.d/
-  #     - /var/lib/docker/containers:/hostfs/var/lib/docker/containers
-  #     - filebeat-data:/usr/share/filebeat/data/
-  #   command: --strict.perms=false
-  #   restart: on-failure
-  #   depends_on: ['elasticsearch', 'logstash']
-  #   networks: ['analytic_net']
-  #   healthcheck:
-  #     test: filebeat test config
-  #     interval: 30s
-  #     timeout: 15s
-  #     retries: 5
+   filebeat:
+    container_name: filebeat
+    image: docker.elastic.co/beats/filebeat:6.4.3
+    environment:
+      - "TZ=America/Toronto"
+    user: root
+    volumes:
+      - ./beats/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml
+      - ./beats/filebeat/inputs.d/:/usr/share/filebeat/inputs.d/
+      - ./beats/filebeat/modules.d/:/usr/share/filebeat/modules.d/
+      - /var/lib/docker/containers:/var/log/docker/containers
+      - filebeat-data:/usr/share/filebeat/data/
+    command: --strict.perms=false
+    restart: on-failure
+    depends_on: ['elasticsearch', 'logstash']
+    networks: ['analytic_net']
+    healthcheck:
+      test: filebeat test config
+      interval: 30s
+      timeout: 15s
+      retries: 5
+
+   packetbeat:
+    container_name: packetbeat
+    image: docker.elastic.co/beats/packetbeat:6.4.3
+    environment:
+      - "TZ=America/Toronto"
+    user: root
+    cap_add: ['NET_RAW', 'NET_ADMIN']
+    volumes:
+      - ./beats/packetbeat/packetbeat.yml:/usr/share/packetbeat/packetbeat.yml:ro
+      - packetbeat-data:/usr/share/packetbeat/data
+    command: --strict.perms=false -e 
+    restart: on-failure
+    depends_on: ['elasticsearch', 'logstash']
+    network_mode: host 
+    healthcheck:
+      test: packetbeat test config
+      interval: 30s
+      timeout: 15s
+      retries: 5
 
    heartbeat:
     container_name: heartbeat
     image: docker.elastic.co/beats/heartbeat:6.4.3
+    environment:
+      - "TZ=America/Toronto"
     volumes:
       - ./beats/heartbeat/heartbeat.yml:/usr/share/heartbeat/heartbeat.yml:ro
       # - ./beats/heartbeat/monitors.d/:/usr/share/heartbeat/monitors.d/:ro
-      -  hearbeat-data:/usr/share/heartbeat/data
+      - hearbeat-data:/usr/share/heartbeat/data
     command: --strict.perms=false -e  # -e flag to log to stderr and disable syslog/file output
     restart: on-failure
     depends_on: ['elasticsearch', 'logstash']
@@ -79,6 +107,8 @@ services:
    metricbeat:
       container_name: metricbeat
       image: docker.elastic.co/beats/metricbeat:6.4.3
+      environment:
+        - "TZ=America/Toronto"
       user: root
       volumes:
         - ./beats/metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro
@@ -102,6 +132,8 @@ services:
    kibana:
       container_name: kibana
       image: docker.elastic.co/kibana/kibana:6.4.3
+      environment:
+        - "TZ=America/Toronto"
       volumes:
         - ./kibana/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
         - kibana-data:/usr/share/kibana/data
@@ -128,9 +160,7 @@ volumes:
     driver: local
   metricbeat-data:
     driver: local
-  # packetbeat-data:
-  #   driver: local
-  # packetbeat-log:
-  #   driver: local
+  packetbeat-data:
+    driver: local
     
 networks: {analytic_net: {}}

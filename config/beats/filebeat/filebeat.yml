@@ -1,14 +1,30 @@
-filebeat.registry_file: /usr/share/filebeat/data/registry
-filebeat.config.prospectors:
-  path: ${path.config}/prospectors.d/*.yml
-  reload.enabled: false
-filebeat.modules:
-#Filebeat system module consumes logs from host OS through a mounted volume
-- module: system
-  syslog:
-    var.paths: ["/var/log/host/system.log*"]
+filebeat.config:
+  inputs:
+    enabled: true
+    path: inputs.d/*.yml
+    reload.enabled: true
+    reload.period: 10s
+  modules:
+    enabled: true
+    path: modules.d/*.yml
+    reload.enabled: true
+    reload.period: 10s
 
-logging.level: info
+setup.dashboards.enabled: true
+setup.dashboards.beat: 
+setup.dashboards.kibana_index: .kibana
+setup.dashboards.retry.enabled: true
+setup.dashboards.retry.interval: 6s
+setup.dashboards.retry.maximum: 0
+
+logging.to_files: true
+logging.files:
+  name: filebeat
+  path: /usr/share/filebeat/logs
+  rotateeverybytes: 10485760
+  keepfiles: 7
+
+logging.level: debug
 
 xpack.monitoring:
   enabled: true
@@ -18,7 +34,7 @@ xpack.monitoring:
     password: changeme
 
 output.logstash:
-  hosts: ["localhost:5044"]
+  hosts: ["logstash:5044"]
   index: filebeat
 
 setup.kibana:

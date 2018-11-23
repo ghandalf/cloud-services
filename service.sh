@@ -351,14 +351,14 @@ function validate() {
 			local command="";
 			for container in `docker ps -a --format "{{.Names}}"`; do
 				case $container in
-					metricbeat|heartbeat)
+					metricbeat|heartbeat|packetbeat|filebeat)
 						command="$container test config";;
 					logstash)
 						command="$container --config.test_and_exit";;
 					kibana|elasticsearch)
 						command="none";;
 					*)
-						echo -e "\n\t${Red} Unkonwn container: [$container]";
+						echo -e "\n\t${Red} Unkonwn container: [$container] ${Color_Off}";
 				esac
 
 				if [ ! "$command" = "none" ]; then
@@ -378,7 +378,7 @@ function validate() {
 
 ###
 # Update docker, docker-machine and docker-compose on any container manager.
-# This function must be used for a docker manager only.
+# This function must be used for docker management only.
 # FIXME: activate this function when all containers are ready for deployment.
 ##
 function update() {
