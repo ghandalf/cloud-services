@@ -8,5 +8,8 @@ config/TMP.yml
 config/docker-compose.OLD
 
 config/beats/heartbeat/heartbeat.fail.yml
+config/apm/apm-server/apm-server.reference.yml
+config/beats/filebeat/filebeat.reference.yml 
+config/beats/packetbeat/packetbeat.reference.yml
 
 installation.info
