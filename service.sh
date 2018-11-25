@@ -307,6 +307,7 @@ function bash() {
 	local container="";
 	local failure="false";
 	case $1 in
+		apm-server) container=apm-server;;
 		elasticsearch) container=elasticsearch;;
 		filebeat) container=filebeat;;
 		heartbeat) container=heartbeat;;
@@ -315,7 +316,7 @@ function bash() {
 		metricbeat) container=metricbeat;;
 		packetbeat) container=packetbeat;;
 		*)
-			echo -e "\n${dt}${Red}Please you need to provide a sub command <elasticsearch|filebeat|heartbeat|kibana|logstash|metricbeat|packetbeat>${Color_Off}";
+			echo -e "\n${dt}${Red}Please you need to provide a sub command <apm-server|elasticsearch|filebeat|heartbeat|kibana|logstash|metricbeat|packetbeat>${Color_Off}";
 			failure="true";
 			;;
 	esac

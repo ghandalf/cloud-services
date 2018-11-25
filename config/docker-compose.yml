@@ -129,6 +129,26 @@ services:
         timeout: 15s
         retries: 5
 
+   apm-server:
+    container_name: apm-server
+    image: docker.elastic.co/apm/apm-server:6.4.3
+    environment:
+      - "TZ=America/Toronto"
+    volumes:
+      - ./apm/apm-server/apm-server.yml:/usr/share/apm-server/apm-server.yml
+    ports: ['8200:8200']
+    restart: always
+    depends_on: ['elasticsearch', 'logstash']
+    networks: ['analytic_net']
+    links: ['logstash']
+    healthcheck:
+      test: apm-server test config
+      interval: 30s
+      timeout: 15s
+      retries: 5
+  
+
+
    kibana:
       container_name: kibana
       image: docker.elastic.co/kibana/kibana:6.4.3
