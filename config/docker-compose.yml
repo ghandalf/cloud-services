@@ -146,8 +146,6 @@ services:
       interval: 30s
       timeout: 15s
       retries: 5
-  
-
 
    kibana:
       container_name: kibana

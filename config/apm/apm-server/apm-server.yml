@@ -1,5 +1,4 @@
 apm-server:
-  # host: "0.0.0.0:8200"
 
 setup.template.settings:
   index:
@@ -18,37 +17,7 @@ xpack.monitoring:
     useranme: elastic
     password: changeme
 
-# output.elasticsearch:
-#   hosts: ["elasticsearch:9200"]
-#   enabled: true
-#   useranme: elastic
-#   password: changeme
-  # indices:
-  #   - index: "apm-%{[beat.version]}-sourcemap"
-  #     when.contains:
-  #       processor.event: "sourcemap"
-
-  #   - index: "apm-%{[beat.version]}-error-%{+yyyy.MM.dd}"
-  #     when.contains:
-  #       processor.event: "error"
-
-  #   - index: "apm-%{[beat.version]}-transaction-%{+yyyy.MM.dd}"
-  #     when.contains:
-  #       processor.event: "transaction"
-
-  #   - index: "apm-%{[beat.version]}-span-%{+yyyy.MM.dd}"
-  #     when.contains:
-  #       processor.event: "span"
-
-  #   - index: "apm-%{[beat.version]}-metric-%{+yyyy.MM.dd}"
-  #     when.contains:
-  #       processor.event: "metric"
-
-  #   - index: "apm-%{[beat.version]}-onboarding-%{+yyyy.MM.dd}"
-  #     when.contains:
-  #       processor.event: "onboarding"
-
-output.logstash:  # Boolean flag to enable or disable the output module.
+output.logstash:
   enabled: true
   hosts: ["logstash:5044"]
   index: 'apm'
