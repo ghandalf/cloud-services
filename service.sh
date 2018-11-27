@@ -12,7 +12,7 @@ args=$2
 dt="\t\t"
 
 ###
-# Pull the images with the define version in docker.properties files
+# Pull the images with the define version in .env files
 #
 ##
 function pull() {
@@ -21,17 +21,25 @@ function pull() {
     done
 }
 
+###
+# Load properties files
+##
 function loadResources() {
 	# echo -e "\n${dt}$0 load resources...";
-	if [ -f ./config/docker.properties ]; then
-		source ./config/docker.properties;
+	if [ -f ./config/resources/docker.properties ]; then
+		source ./config/resources/docker.properties;
 	else
-		echo -e "\n${dt}${BRed}You need to provide the file docker.properties under config directory...${Color_Off}\n";
+		echo -e "\n${dt}${BRed}You need to provide docker.properties file under config directory...${Color_Off}\n";
 	fi
-	if [ -f ./env/colors.properties ]; then
-		source ./env/colors.properties;
+	if [ -f ./config/.env ]; then
+		source ./config/.env;
 	else
-		echo -e "\n${dt}${BRed}You need to provide colors.properties file under env directory...${Color_Off}\n";
+		echo -e "\n${dt}${BRed}You need to provide .env file under config directory...${Color_Off}\n";
+	fi
+	if [ -f ./config/resources/colors.properties ]; then
+		source ./config/resources/colors.properties;
+	else
+		echo -e "\n${dt}${BRed}You need to provide colors.properties file under config/resources directory...${Color_Off}\n";
 	fi
 }
 
@@ -134,6 +142,7 @@ function start() {
 function stopSwarm() {
 	docker-compose -f $compose_file down;
 	docker swarm leave --force;
+	docker stop $(docker ps -qa);
 }
 
 function stop() {
@@ -307,6 +316,7 @@ function bash() {
 	local container="";
 	local failure="false";
 	case $1 in
+		alpine) container=alpine;;
 		apm-server) container=apm-server;;
 		elasticsearch) container=elasticsearch;;
 		filebeat) container=filebeat;;
@@ -314,6 +324,7 @@ function bash() {
 		kibana) container=kibana;;
 		logstash) container=logstash;;
 		metricbeat) container=metricbeat;;
+		nginx) container=dmi-nginx;;
 		packetbeat) container=packetbeat;;
 		*)
 			echo -e "\n${dt}${Red}Please you need to provide a sub command <apm-server|elasticsearch|filebeat|heartbeat|kibana|logstash|metricbeat|packetbeat>${Color_Off}";
@@ -427,8 +438,30 @@ function update() {
 	esac
 }
 
+###
+# Internal diagnostic of the containers
+##
 function diagnose() {
 	${docker_diagnose} gather
+}
+
+
+###
+#
+##
+function createDmiNginxContainer() {
+docker build -f ./config/nginx/Dockerfile -t dmi-nginx:1.0 -t dmi-nginx:latest . 
+# Save the content of the image to keep all our changes done with the line below 
+# docker run --name dmi-nginx -p 80:80 -d dmi-nginx
+# docker commit d4c08eeeef4f dmi-nginx:latest
+# docker stop dmi-nginx
+
+# Once the swarm is started:
+# execute ./service.sh port | grep kibana | awk -F" "  {'printf $2'}
+# replace the ip address given in default.conf file by the one you have now for the proxy_pass 
+# proxy_pass  http://<new ip address>:5601;
+
+#echo -e "\n${Yellow}`docker inspect --format='{{.Name}}\t{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(docker ps -q)`${Color_Off}";
 }
 
 function usage() {
@@ -450,6 +483,8 @@ case ${command} in
 		bash $args;;
 	clean)
 		clean;;
+	proxy)
+		createDmiNginxContainer;;
 	debug)
 		debugContainer $args;;
 	diagnose)
