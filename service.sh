@@ -31,11 +31,12 @@ function loadResources() {
 	else
 		echo -e "\n${dt}${BRed}You need to provide docker.properties file under config directory...${Color_Off}\n";
 	fi
-	if [ -f ./config/.env ]; then
-		source ./config/.env;
-	else
-		echo -e "\n${dt}${BRed}You need to provide .env file under config directory...${Color_Off}\n";
-	fi
+	## ./config/.env content : container_version=6.5.1, I would like to use it in docker-compose.yml file
+	# if [ -f ./config/.env ]; then
+	# 	source ./config/.env;
+	# else
+	# 	echo -e "\n${dt}${BRed}You need to provide .env file under config directory...${Color_Off}\n";
+	# fi
 	if [ -f ./config/resources/colors.properties ]; then
 		source ./config/resources/colors.properties;
 	else
@@ -447,7 +448,7 @@ function diagnose() {
 
 
 ###
-#
+# https://docs.docker.com/docker-cloud/builds/push-images/
 ##
 function createDmiNginxContainer() {
 docker build -f ./config/nginx/Dockerfile -t dmi-nginx:1.0 -t dmi-nginx:latest . 
