@@ -152,7 +152,7 @@ services:
 
    dmi-nginx:
     container_name: dmi-nginx
-    image: dmi-nginx
+    image: ghandalf/dmi-nginx
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf
