@@ -83,7 +83,6 @@ services:
     image: docker.elastic.co/beats/heartbeat:6.5.1
     volumes:
       - ./beats/heartbeat/heartbeat.yml:/usr/share/heartbeat/heartbeat.yml:ro
-      # - ./beats/heartbeat/monitors.d/:/usr/share/heartbeat/monitors.d/:ro
       - hearbeat-data:/usr/share/heartbeat/data
     command: --strict.perms=false -e  # -e flag to log to stderr and disable syslog/file output
     restart: on-failure

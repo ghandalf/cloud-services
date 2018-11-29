@@ -1,11 +1,13 @@
-# It will have to be changed to any went we go on AWS, those are Redhat server not Mac
-# packetbeat.interfaces.device: en0 # For MAC only
-# packetbeat.interfaces.device: any
-
 packetbeat.flows:
   enabled: true
   timeout: 30s
   period: 10s
+
+packetbeat.interfaces:
+  device: any #eth0 # for MAC only, used to be : any # for others platforms
+  snaplen: 1514
+  type: af_packet
+  buffer_size_mb: 100
 
 packetbeat.protocols:
   - type: icmp
@@ -20,7 +22,11 @@ packetbeat.protocols:
 
   - type: http
     enabled: true
-    ports: [9200, 9600, 5601]
+    ports: [80, 9200, 5044, 5601]
+    hide_keywords: ["pass", "password", "passwd"]
+    send_headers: ["User-Agent", "Cookie", "Set-Cookie"]
+    split_cookie: true
+    real_ip_header: "X-Forwarded-For"
 
   - type: memcache
     ports: [11211]
@@ -30,17 +36,21 @@ logging.level: info
 xpack.monitoring:
   enabled: true
   elasticsearch:
+    # Use localhost to avoid 
+    #   DNS lookup failure "elasticsearch": lookup elasticsearch on 192.168.65.1:53: no such host
+    # FIXME: Need to configure the internal network properly
     hosts: ["localhost:9200"]
-    useranme: elastic # beats_system
+    useranme: elastic
     password: changeme
 
 output.logstash:
-  # all others beats use logstash, packetbeat use dns entry to find out but didn't work so localhost is a patch
+  # Use localhost to avoid 
+    #   DNS lookup failure ...  no such host
   hosts: ["localhost:5044"]
   index: packetbeat
 
 setup.kibana:
-   host: "localhost:5601"
+   host: "http://kibana:5601"
    protocol: "http"
 
 logging.to_files: true
