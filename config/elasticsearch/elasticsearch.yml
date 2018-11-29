@@ -5,6 +5,8 @@ bootstrap.memory_lock: true
 node.name: "master-node"
 node.master: true
 
+# discovery.zen.minimum_master_nodes: 2
+
 xpack.graph.enabled: false
 xpack.ml.enabled: true
 xpack.monitoring.enabled: true

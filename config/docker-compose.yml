@@ -11,6 +11,7 @@ services:
           hard: -1
       volumes:
         - ./elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+        # - ./elasticsearch/config/log4j2.properties:/usr/share/elasticsearch/config/log4j2.properties:ro
         - elastic-data:/usr/share/elasticsearch/data
       ports: ['9200:9200', '9300:9300']
       healthcheck:

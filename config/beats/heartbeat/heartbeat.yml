@@ -1,31 +1,21 @@
-# heartbeat.config.monitors:
-#   path: ${path.config}/monitors.d/*.yml
-#   reload.period: 10s
-#   reload.enabled: true
-  # setup.template.settings:
-  #   index.number_of_shards: 1
-  #   index.codec: best_compression
-
-
 heartbeat.monitors:
 - type: icmp
   schedule: '@every 5s'
-  hosts: ["logstash", "elascticsearch", "kibana"]
+  hosts: ["elasticsearch", "kibana"]
 - type: tcp
   schedule: '@every 5s'
-  hosts: ["logstash", "elascticsearch", "kibana"]
+  hosts: ["elasticsearch:7", "kibana:7"]
   check.send: "Echo"
   check.receive: "Echo"
 - type: http
   schedule: '@every 5s'
-  urls: ["http://logstash:9600", "http://elasticsearch:9200", "http://kibana:5601"]
+  urls: ["http://elasticsearch:9200", "http://kibana:5601"]
   check.response.status: 200
 
 heartbeat.scheduler:
   limit: 10
 
 logging.level: info
-
 xpack.monitoring:
   enabled: true
   elasticsearch:
