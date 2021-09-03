@@ -1,4 +1,4 @@
-FROM nginx
+FROM nginx:1
 LABEL Author="Francis Ouellet fouellet@dminc.com"
 RUN apt-get update \
 && apt-get install -y apache2-utils \
